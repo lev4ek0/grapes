@@ -11,4 +11,4 @@ class DateSerializer(serializers.Serializer):
 class RegionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Region
-        fields = ("name", "code")
+        fields = ("id", "name", "code")
