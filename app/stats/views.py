@@ -11,7 +11,7 @@ from stats.utils import get_color_code_by_number
 
 def get_regions(func):
     def wrapper(self, request, **kwargs):
-        regions_list = request.query_params.get("region_ids")
+        regions_list = request.query_params.getlist("region_ids")
         if regions_list:
             regions = Region.objects.filter(id__in=regions_list)
         else:
@@ -49,10 +49,11 @@ class ForecastMapAPIView(APIView):
             forecasts.append(forecast_result)
         min_value = min(map(lambda x: sum(x["illnesses"].values()), forecasts))
         max_value = max(map(lambda x: sum(x["illnesses"].values()), forecasts))
-        for forecast_ in deepcopy(forecasts):
+        forecasts_copy = deepcopy(forecasts)
+        for forecast_ in forecasts_copy:
             forecast_["color"] = get_color_code_by_number(
                 sum(forecast_["illnesses"].values()), max_value, min_value
             )
             del forecast_["weather_forecast"]
             del forecast_["date"]
-        return Response(forecasts)
+        return Response(forecasts_copy)
