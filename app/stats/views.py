@@ -88,7 +88,7 @@ class WorstForecastAPIView(APIView):
         if not serialized_date.is_valid():
             return Response(status=404)
         forecasts = []
-        date = datetime.strptime(serialized_date, "%d-%m-%Y")
+        date = datetime.datetime.strptime(serialized_date.data["date"], "%Y-%m-%d")
         for region in regions:
             forecast_result = deepcopy(forecast(date, region.pk))
             forecast_result["region"] = RegionSerializer(region).data
@@ -105,7 +105,7 @@ class ForecastMapAPIView(APIView):
         if not serialized_date.is_valid():
             return Response(status=404)
         forecasts = []
-        date = datetime.strptime(serialized_date, "%d-%m-%Y")
+        date = datetime.datetime.strptime(serialized_date.data["date"], "%Y-%m-%d")
         for region in regions:
             forecast_result = deepcopy(forecast(date, region.pk))
             forecast_result["region"] = RegionSerializer(region).data
