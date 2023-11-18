@@ -1,0 +1,93 @@
+[
+    {
+        "model": "stats.illness",
+        "pk": 1,
+        "fields": {
+            "name": "Милдью"
+        }
+    },
+    {
+        "model": "stats.illness",
+        "pk": 2,
+        "fields": {
+            "name": "Оидиум – конидии"
+        }
+    },
+    {
+        "model": "stats.illness",
+        "pk": 3,
+        "fields": {
+            "name": "Оидиум - мицелий"
+        }
+    },
+    {
+        "model": "stats.illness",
+        "pk": 4,
+        "fields": {
+            "name": "Антракноз"
+        }
+    },
+    {
+        "model": "stats.illness",
+        "pk": 5,
+        "fields": {
+            "name": "Серая гниль"
+        }
+    },
+    {
+        "model": "stats.illness",
+        "pk": 6,
+        "fields": {
+            "name": "Чёрная пятнистость"
+        }
+    },
+    {
+        "model": "stats.illness",
+        "pk": 7,
+        "fields": {
+            "name": "Черная гниль"
+        }
+    },
+    {
+        "model": "stats.illness",
+        "pk": 8,
+        "fields": {
+            "name": "Белая гниль"
+        }
+    },
+    {
+        "model": "stats.illness",
+        "pk": 9,
+        "fields": {
+            "name": "Вертициллезное увядание"
+        }
+    },
+    {
+        "model": "stats.illness",
+        "pk": 10,
+        "fields": {
+            "name": "Альтернариоз"
+        }
+    },
+    {
+        "model": "stats.illness",
+        "pk": 11,
+        "fields": {
+            "name": "Фузариоз"
+        }
+    },
+    {
+        "model": "stats.illness",
+        "pk": 12,
+        "fields": {
+            "name": "Краснуха"
+        }
+    },
+    {
+        "model": "stats.illness",
+        "pk": 13,
+        "fields": {
+            "name": "Бактериальный рак"
+        }
+    }
+]
