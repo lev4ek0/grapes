@@ -1,5 +1,6 @@
-from geography.models import Region
 from rest_framework import serializers
+
+from geography.models import Region
 
 
 class RegionSerializer(serializers.ModelSerializer):

@@ -1,4 +1,5 @@
 from django.contrib import admin
+
 from geography.models import Region
 
 

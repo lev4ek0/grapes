@@ -1,6 +1,6 @@
 from rest_framework import serializers
-from geography.models import Region
 
+from geography.models import Region
 from stats.utils import get_color_code_by_number
 
 

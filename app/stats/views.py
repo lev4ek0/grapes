@@ -1,10 +1,12 @@
-from rest_framework.views import APIView, Response
+from copy import deepcopy
+
 from rest_framework.request import Request
-from stats.utils import get_color_code_by_number
+from rest_framework.views import APIView, Response
 
 from geography.models import Region
 from processing.forecast import forecast
 from stats.serializers import DateSerializer, RegionSerializer
+from stats.utils import get_color_code_by_number
 
 
 class WorstForecastAPIView(APIView):
@@ -19,8 +21,7 @@ class WorstForecastAPIView(APIView):
             forecast_result["region"] = RegionSerializer(region).data
             forecasts.append(forecast_result)
         forecasts.sort(key=lambda x: sum(x["illnesses"].values()), reverse=True)
-        return Response(forecasts[:int(request.query_params.get("limit", 5))])
-
+        return Response(forecasts[: int(request.query_params.get("limit", 5))])
 
 
 class ForecastMapAPIView(APIView):
@@ -36,8 +37,10 @@ class ForecastMapAPIView(APIView):
             forecasts.append(forecast_result)
         min_value = min(map(lambda x: sum(x["illnesses"].values()), forecasts))
         max_value = max(map(lambda x: sum(x["illnesses"].values()), forecasts))
-        for forecast_ in forecasts:
-            forecast_["color"] = get_color_code_by_number(sum(forecast_["illnesses"].values()), max_value, min_value)
+        for forecast_ in deepcopy(forecasts):
+            forecast_["color"] = get_color_code_by_number(
+                sum(forecast_["illnesses"].values()), max_value, min_value
+            )
             del forecast_["weather_forecast"]
             del forecast_["date"]
         return Response(forecasts)

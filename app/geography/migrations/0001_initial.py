@@ -7,22 +7,42 @@ class Migration(migrations.Migration):
 
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='Region',
+            name="Region",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=127, unique=True, verbose_name='Название')),
-                ('coords', models.JSONField(blank=True, help_text='В формате GeoJSON', null=True, verbose_name='Координаты')),
-                ('code', models.CharField(max_length=7, verbose_name='Код ISO 3166-2')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "name",
+                    models.CharField(
+                        max_length=127, unique=True, verbose_name="Название"
+                    ),
+                ),
+                (
+                    "coords",
+                    models.JSONField(
+                        blank=True,
+                        help_text="В формате GeoJSON",
+                        null=True,
+                        verbose_name="Координаты",
+                    ),
+                ),
+                ("code", models.CharField(max_length=7, verbose_name="Код ISO 3166-2")),
             ],
             options={
-                'verbose_name': 'Регион',
-                'verbose_name_plural': 'Регионы',
-                'ordering': ('name',),
+                "verbose_name": "Регион",
+                "verbose_name_plural": "Регионы",
+                "ordering": ("name",),
             },
         ),
     ]
