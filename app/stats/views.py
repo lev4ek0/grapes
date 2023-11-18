@@ -46,17 +46,18 @@ class HeatMapAPIView(APIView):
         if not serialized_date.is_valid():
             return Response(status=404)
         forecasts = []
-        date = datetime.datetime.strptime(serialized_date.data["date"], "%Y-%m-%d")
+        date = serialized_date.data["date"]
         output = {
             "dates": [],
             "data": [],
             "illnesses": [],
+            "forecast": [],
         }
         for day_index in range(-6, 4):
-            cur_date = date + datetime.timedelta(days=day_index)
+            cur_date = datetime.datetime.strptime(serialized_date.data["date"], "%Y-%m-%d") + datetime.timedelta(days=day_index)
             illness_map = {illness: 0 for illness in illnesses}
             for region in regions:
-                forecast_result = deepcopy(forecast(cur_date, region.pk))
+                forecast_result = deepcopy(forecast(cur_date.strftime("%Y-%m-%d"), region.pk))
                 for illness in list(filter(lambda x: x["name"] in illnesses, forecast_result["illnesses"])):
                     if mode == 'percent':
                         illness_map[illness["name"]] += illness["percent"]
@@ -69,13 +70,14 @@ class HeatMapAPIView(APIView):
         minimum = math.inf
         maximum = 0
         for x in range(len(forecasts)):
+            key = "data" if x < 7 else "forecast"
             for y, (illness, value) in enumerate(sorted(forecasts[x].items(), key=lambda x: x[0])):
                 if mode == 'percent':
                     val = round(value/len(regions), 2)
-                    output["data"].append([x, y, val if value else '-'])
+                    output[key].append([x, y, val if value else '-'])
                 else:
                     val = value
-                    output["data"].append([x, y, val if value else '-'])
+                    output[key].append([x, y, val if value else '-'])
                 maximum, minimum = max(maximum, val), min(minimum, val)
         output["max"], output["min"] = maximum, minimum
         return Response(output)
@@ -88,7 +90,7 @@ class WorstForecastAPIView(APIView):
         if not serialized_date.is_valid():
             return Response(status=404)
         forecasts = []
-        date = datetime.datetime.strptime(serialized_date.data["date"], "%Y-%m-%d")
+        date = serialized_date.data["date"]
         for region in regions:
             forecast_result = deepcopy(forecast(date, region.pk))
             forecast_result["region"] = RegionSerializer(region).data
@@ -105,7 +107,7 @@ class ForecastMapAPIView(APIView):
         if not serialized_date.is_valid():
             return Response(status=404)
         forecasts = []
-        date = datetime.datetime.strptime(serialized_date.data["date"], "%Y-%m-%d")
+        date = serialized_date.data["date"]
         for region in regions:
             forecast_result = deepcopy(forecast(date, region.pk))
             forecast_result["region"] = RegionSerializer(region).data
