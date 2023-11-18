@@ -25,7 +25,12 @@ def get_query_params(func):
             regions = Region.objects.all()
         kwargs["regions"] = regions
         kwargs["limit"] = int(request.query_params.get("limit", 5))
-        kwargs["illnesses"] = set(request.query_params.getlist("illnesses", Illness.objects.values_list('name', flat=True)))
+        illnesses_list = request.query_params.getlist("illness_ids")
+        if illnesses_list:
+            illnesses = Illness.objects.filter(id__in=illnesses_list)
+        else:
+            illnesses = Illness.objects.all()
+        kwargs["illnesses"] = set(illnesses.values_list('name', flat=True))
         return func(self, request, **kwargs)
     return wrapper
 
