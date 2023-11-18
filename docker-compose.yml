@@ -1,0 +1,38 @@
+version: "3.8"
+
+services:
+  postgres:
+    restart: always
+    image: postgres:14.5
+    expose:
+      - 5432
+    env_file:
+      - app/app/.env
+    volumes:
+      - ./data/postgresql:/var/lib/postgresql/data
+      - ./dumps:/code/dumps
+      - ./app/media:/code/app/media
+
+  backend:
+    restart: always
+    container_name: django
+    build: ./app
+    command: bash -c "
+      python manage.py migrate &&
+      gunicorn app.wsgi:application --bind 0.0.0.0:8000 --reload"
+    volumes:
+      - ./app:/app
+    expose:
+      - 8000
+    depends_on:
+      - postgres
+
+  nginx:
+    restart: always
+    build: ./nginx
+    ports:
+      - 8100:80
+    depends_on:
+      - backend
+    volumes:
+      - ./app/media:/code/app/media

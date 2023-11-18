@@ -1,0 +1,16 @@
+argon2-cffi==21.3.0
+django==4.1.7
+django-filter==22.1
+django-cors-headers==3.13.0
+django-environ==0.9.0
+django-jazzmin==2.6.0
+djangorestframework==3.14.0
+djangorestframework-simplejwt==4.8.0
+djoser==2.1.0
+openpyxl==3.1.0
+pandas==1.5.3
+plotly==5.13.0
+whitenoise==6.3.0
+psycopg2==2.9.6
+drf_spectacular==0.25.1
+xlrd
