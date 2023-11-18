@@ -19,7 +19,7 @@ class WorstForecastAPIView(APIView):
             forecast_result["region"] = RegionSerializer(region).data
             forecasts.append(forecast_result)
         forecasts.sort(key=lambda x: sum(x["illnesses"].values()), reverse=True)
-        return Response(forecasts[:request.data.get("limit") or 5])
+        return Response(forecasts[:int(request.query_params.get("limit", 5))])
 
 
 

@@ -1,11 +1,12 @@
 from datetime import date
+import datetime
+from functools import lru_cache
 from typing import Dict
 
 import pandas as pd
-from dateutil.relativedelta import relativedelta
+
 
 weather_data = {i: pd.read_excel(f'/app/processing/weather_data/{i}.xls', skiprows=6) for i in range(1, 53)}
-
 
 # функция для расчета вероятности заболевания если удовлетворены начальные условия заболевания
 def get_prob(t_and_hum_df, optim_t, optim_u, special_condition=False):
@@ -37,6 +38,7 @@ def check_rain(day_entries):
 # главная функция - подсчет вероятностей
 # на вход подается дата и датасет
 # на выходе словарь с вероятностями и прогноз погоды на следующие три дня
+@lru_cache(maxsize=10000)
 def forecast(current_date: date, key: int) -> Dict:
     df: pd.DataFrame = weather_data[key]
     df['date'] = pd.to_datetime(df[df.columns[0]], dayfirst=True)
@@ -45,7 +47,7 @@ def forecast(current_date: date, key: int) -> Dict:
     pd_cur_date = pd.to_datetime(current_date)
 
     df_slice = df[(df['date'] >= pd_cur_date) &
-                  (df['date'] < pd_cur_date + relativedelta(days=4))]
+                  (df['date'] < pd_cur_date + datetime.timedelta(days=4))]
 
     t_and_hum_by_day = df_slice.groupby([pd.Grouper(key='date', freq='D')])[['T', 'U']].mean()
     t_and_hum_by_day['T'] = t_and_hum_by_day['T'].round(2)
