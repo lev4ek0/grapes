@@ -9,10 +9,22 @@ from stats.serializers import DateSerializer, RegionSerializer
 from stats.utils import get_color_code_by_number
 
 
+def get_regions(func):
+    def wrapper(self, request, **kwargs):
+        regions_list = request.query_params.get("region_ids")
+        if regions_list:
+            regions = Region.objects.filter(id__in=regions_list)
+        else:
+            regions = Region.objects.all()
+        kwargs["regions"] = regions
+        return func(self, request, **kwargs)
+    return wrapper
+
+
 class WorstForecastAPIView(APIView):
-    def get(self, request: Request, date: str):
+    @get_regions
+    def get(self, request: Request, date: str, regions: list[Region]):
         serialized_date = DateSerializer(data={"date": date})
-        regions = Region.objects.all()
         if not serialized_date.is_valid():
             return Response(status=404)
         forecasts = []
@@ -25,9 +37,9 @@ class WorstForecastAPIView(APIView):
 
 
 class ForecastMapAPIView(APIView):
-    def get(self, request: Request, date: str):
+    @get_regions
+    def get(self, request: Request, date: str, regions: list[Region]):
         serialized_date = DateSerializer(data={"date": date})
-        regions = Region.objects.all()
         if not serialized_date.is_valid():
             return Response(status=404)
         forecasts = []

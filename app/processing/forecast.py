@@ -1,9 +1,10 @@
 import datetime
 from datetime import date
-from functools import lru_cache
+from threading import Thread
 from typing import Dict
 
 import pandas as pd
+from filecache import filecache
 
 weather_data = {
     i: pd.read_excel(f"/app/processing/weather_data/{i}.xls", skiprows=6)
@@ -40,7 +41,7 @@ def check_rain(day_entries):
 # главная функция - подсчет вероятностей
 # на вход подается дата и датасет
 # на выходе словарь с вероятностями и прогноз погоды на следующие три дня
-@lru_cache(maxsize=10000)
+@filecache
 def forecast(current_date: date, key: int) -> Dict:
     df: pd.DataFrame = weather_data[key]
     df["date"] = pd.to_datetime(df[df.columns[0]], dayfirst=True)

@@ -14,3 +14,4 @@ whitenoise==6.3.0
 psycopg2==2.9.6
 drf_spectacular==0.25.1
 xlrd
+filecache
