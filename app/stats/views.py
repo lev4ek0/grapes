@@ -40,7 +40,7 @@ class WorstForecastAPIView(APIView):
         for region in regions:
             forecast_result = deepcopy(forecast(serialized_date.data["date"], region.pk))
             forecast_result["region"] = RegionSerializer(region).data
-            forecast_result["illnesses"] = list(filter(lambda x: x["name"] not in illnesses, forecast_result["illnesses"]))
+            forecast_result["illnesses"] = list(filter(lambda x: x["name"] in illnesses, forecast_result["illnesses"]))
             forecasts.append(forecast_result)
         forecasts.sort(key=lambda x: sum(map(lambda y: y["percent"], x["illnesses"])), reverse=True)
         return Response(forecasts[:limit])
@@ -56,7 +56,7 @@ class ForecastMapAPIView(APIView):
         for region in regions:
             forecast_result = deepcopy(forecast(serialized_date.data["date"], region.pk))
             forecast_result["region"] = RegionSerializer(region).data
-            forecast_result["illnesses"] = list(filter(lambda x: x["name"] not in illnesses, forecast_result["illnesses"]))
+            forecast_result["illnesses"] = list(filter(lambda x: x["name"] in illnesses, forecast_result["illnesses"]))
             forecasts.append(forecast_result)
         min_value = min(map(lambda x: sum(map(lambda y: y["percent"], x["illnesses"])), forecasts))
         max_value = max(map(lambda x: sum(map(lambda y: y["percent"], x["illnesses"])), forecasts))

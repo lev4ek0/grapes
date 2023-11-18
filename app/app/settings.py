@@ -42,7 +42,7 @@ THIRD_PARTY_APPS = [
     "django_filters",
 ]
 
-LOCAL_APPS = ["geography", "stats", "users"]
+LOCAL_APPS = ["geography", "stats", "users", "events"]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 

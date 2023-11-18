@@ -16,4 +16,5 @@ urlpatterns = [
     path("auth/", include("djoser.urls.jwt")),
     path("stats/", include("stats.urls")),
     path("geography/", include("geography.urls")),
+    path("events/", include("events.urls")),
 ]
