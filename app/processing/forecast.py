@@ -316,7 +316,7 @@ def get_forecast(current_date, key):
     else:
         return forecast(current_date, key)
 
-создание кэшей
+# создание кэшей
 date_start = date(2021, 4, 7)
 
 for i in range(180): 
