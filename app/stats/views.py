@@ -9,7 +9,7 @@ from rest_framework.generics import ListAPIView
 from stats.models import Illness
 
 from geography.models import Region
-from processing.forecast import forecast
+from processing.forecast import get_forecast
 from stats.serializers import DateSerializer, IllnessSerializer, RegionSerializer
 from stats.utils import get_color_code_by_number
 
@@ -57,7 +57,7 @@ class HeatMapAPIView(APIView):
             cur_date = datetime.datetime.strptime(serialized_date.data["date"], "%Y-%m-%d") + datetime.timedelta(days=day_index)
             illness_map = {illness: 0 for illness in illnesses}
             for region in regions:
-                forecast_result = deepcopy(forecast(cur_date.strftime("%Y-%m-%d"), region.pk))
+                forecast_result = deepcopy(get_forecast(cur_date.strftime("%Y-%m-%d"), region.pk))
                 for illness in list(filter(lambda x: x["name"] in illnesses, forecast_result["illnesses"])):
                     if mode == 'percent':
                         illness_map[illness["name"]] += illness["percent"]
@@ -92,7 +92,7 @@ class WorstForecastAPIView(APIView):
         forecasts = []
         date = serialized_date.data["date"]
         for region in regions:
-            forecast_result = deepcopy(forecast(date, region.pk))
+            forecast_result = deepcopy(get_forecast(date, region.pk))
             forecast_result["region"] = RegionSerializer(region).data
             forecast_result["illnesses"] = list(filter(lambda x: x["name"] in illnesses, forecast_result["illnesses"]))
             forecasts.append(forecast_result)
@@ -109,7 +109,7 @@ class ForecastMapAPIView(APIView):
         forecasts = []
         date = serialized_date.data["date"]
         for region in regions:
-            forecast_result = deepcopy(forecast(date, region.pk))
+            forecast_result = deepcopy(get_forecast(date, region.pk))
             forecast_result["region"] = RegionSerializer(region).data
             forecast_result["illnesses"] = list(filter(lambda x: x["name"] in illnesses, forecast_result["illnesses"]))
             forecasts.append(forecast_result)

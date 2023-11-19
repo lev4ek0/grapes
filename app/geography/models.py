@@ -8,6 +8,8 @@ class Region(models.Model):
         blank=True, null=True, verbose_name="Координаты", help_text="В формате GeoJSON"
     )
 
+    lat = models.FloatField(verbose_name="Широта")
+    lon = models.FloatField(verbose_name="Долгота")
     code = models.CharField(max_length=7, verbose_name="Код ISO 3166-2")
 
     def __str__(self) -> str:

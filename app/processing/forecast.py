@@ -2,9 +2,19 @@ import datetime
 from datetime import date
 from threading import Thread
 from typing import Dict
+import requests
+import environ
 
 import pandas as pd
 from filecache import filecache
+
+from pathlib import Path
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+env = environ.Env()
+env.read_env(BASE_DIR / "app" / ".env")
+YANDEX_API_KEY = env.str("YANDEX_API_KEY", "")
+
 
 weather_data = {
     i: pd.read_excel(f"/app/processing/weather_data/{i}.xls", skiprows=6)
@@ -26,13 +36,13 @@ def get_prob(t_and_hum_df, optim_t, optim_u, special_condition=False):
 
 # функция, чтобы определить, какие осадки будут в течение дня
 def check_rain(day_entries):
-    if "град" in "".join(day_entries.tolist()).lower():
+    if "град" in "".join(day_entries.tolist()).lower() or "hail" in "".join(day_entries.tolist()).lower():
         return "ожидается град"
-    elif "ливень" in "".join(day_entries.tolist()).lower():
+    elif "ливень" in "".join(day_entries.tolist()).lower() or "showers" in "".join(day_entries.tolist()).lower():
         return "ожидается ливень"
-    elif "дождь" in "".join(day_entries.tolist()).lower():
+    elif "дождь" in "".join(day_entries.tolist()).lower() or "rain" in "".join(day_entries.tolist()).lower():
         return "ожидается дождь"
-    elif "снег" in "".join(day_entries.tolist()).lower():
+    elif "снег" in "".join(day_entries.tolist()).lower() or "snow" in "".join(day_entries.tolist()).lower():
         return "ожидается снег"
     else:
         return "не ожидается осадков"
@@ -41,9 +51,7 @@ def check_rain(day_entries):
 # главная функция - подсчет вероятностей
 # на вход подается дата и датасет
 # на выходе словарь с вероятностями и прогноз погоды на следующие три дня
-@filecache
-def forecast(current_date: date, key: int) -> Dict:
-    df: pd.DataFrame = weather_data[key]
+def calculate(df, current_date):
     df["date"] = pd.to_datetime(df[df.columns[0]], dayfirst=True)
     df["WW"] = df["WW"].fillna("")
 
@@ -60,23 +68,16 @@ def forecast(current_date: date, key: int) -> Dict:
     t_and_hum_by_day["T"] = t_and_hum_by_day["T"].round(2)
     t_and_hum_by_day["U"] = t_and_hum_by_day["U"].round(2)
 
-    if (
-        len(
-            df_slice[
-                df_slice["WW"].str.contains(
-                    "ливень|дождь|снег|град|гроза|морось|мгла|туман|морось",
-                    case=False,
-                    na=False,
-                )
-            ]
-        )
-        == 0
-    ):
+    if len(df_slice[df_slice['WW'].str.contains('ливень|дождь|снег|град|гроза|морось|мгла|туман|морось|rain|showers|snow|hail|thunderstorm',
+                                                case=False,
+                                                na=False)]) == 0:
         any_precipitation = False
     else:
         any_precipitation = True
 
-    if len(df_slice[df_slice["WW"].str.contains("ливень", case=False, na=False)]) > 70:
+    if len(df_slice[df_slice['WW'].str.contains('ливень|showers',
+                                                case=False,
+                                                na=False)]) > 70:
         showers = True
     else:
         showers = False
@@ -238,3 +239,42 @@ def forecast(current_date: date, key: int) -> Dict:
         "date": pd_cur_date.strftime("%Y-%m-%d"),
         "illnesses": list(filter(lambda x: x["percent"] != 0, illnesses)),
     } | {"weather_forecast": weather_forecast_df.T.to_dict()}
+
+
+def forecast_yandex(current_date, key):
+    result = requests.get(
+        "https://api.weather.yandex.ru/v2/forecast?lat=46.546266&lon=39.617851&extra=true&lang=ru_RU&limit=4&hours=false",
+        headers={"X-Yandex-API-Key": YANDEX_API_KEY}
+    )
+
+    json_datas = result.json()
+    json_datas = json_datas["forecasts"]
+    data_nigth = [{
+        'date': json_data['date'],
+        'U': json_data['parts']['night']['humidity'],
+        'T': json_data['parts']['night']['temp_avg'],
+        'WW': json_data['parts']['night']['condition']
+    } for json_data in json_datas]
+
+    data_day = [{
+        'date': json_data['date'],
+        'U': json_data['parts']['day_short']['humidity'],
+        'T': json_data['parts']['day_short']['temp'],
+        'WW': json_data['parts']['day_short']['condition']
+    } for json_data in json_datas]
+    # Convert dictionary to dataframe
+    df = pd.DataFrame(data_nigth + data_day)
+    return calculate(df, current_date)
+
+
+@filecache
+def forecast(current_date: date, key: int) -> Dict:
+    df: pd.DataFrame = weather_data[key]
+    return calculate(df, current_date)
+    
+
+def get_forecast(current_date, key):
+    if datetime.datetime.strptime(current_date, "%Y-%m-%d").date() == datetime.datetime.now().date():
+        return forecast_yandex(current_date, key)
+    else:
+        return forecast(current_date, key)
