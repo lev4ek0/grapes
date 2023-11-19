@@ -1,8 +1,8 @@
 from django.shortcuts import render
 from rest_framework.generics import ListCreateAPIView
-from events.serializers import EventSerializer
 
 from events.models import Event
+from events.serializers import EventSerializer
 
 
 class EventsListCreateView(ListCreateAPIView):

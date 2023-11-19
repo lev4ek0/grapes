@@ -6,20 +6,20 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('geography', '0001_initial'),
+        ("geography", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='region',
-            name='lat',
-            field=models.FloatField(default=0, verbose_name='Широта'),
+            model_name="region",
+            name="lat",
+            field=models.FloatField(default=0, verbose_name="Широта"),
             preserve_default=False,
         ),
         migrations.AddField(
-            model_name='region',
-            name='lon',
-            field=models.FloatField(default=0, verbose_name='Долгота'),
+            model_name="region",
+            name="lon",
+            field=models.FloatField(default=0, verbose_name="Долгота"),
             preserve_default=False,
         ),
     ]

@@ -1,15 +1,15 @@
 import datetime
 from datetime import date
+from pathlib import Path
 from threading import Thread
 from typing import Dict
-import requests
-from geography.models import Region
-import environ
 
+import environ
 import pandas as pd
+import requests
 from filecache import filecache
 
-from pathlib import Path
+from geography.models import Region
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 env = environ.Env()
@@ -37,13 +37,25 @@ def get_prob(t_and_hum_df, optim_t, optim_u, special_condition=False):
 
 # функция, чтобы определить, какие осадки будут в течение дня
 def check_rain(day_entries):
-    if "град" in "".join(day_entries.tolist()).lower() or "hail" in "".join(day_entries.tolist()).lower():
+    if (
+        "град" in "".join(day_entries.tolist()).lower()
+        or "hail" in "".join(day_entries.tolist()).lower()
+    ):
         return "ожидается град"
-    elif "ливень" in "".join(day_entries.tolist()).lower() or "showers" in "".join(day_entries.tolist()).lower():
+    elif (
+        "ливень" in "".join(day_entries.tolist()).lower()
+        or "showers" in "".join(day_entries.tolist()).lower()
+    ):
         return "ожидается ливень"
-    elif "дождь" in "".join(day_entries.tolist()).lower() or "rain" in "".join(day_entries.tolist()).lower():
+    elif (
+        "дождь" in "".join(day_entries.tolist()).lower()
+        or "rain" in "".join(day_entries.tolist()).lower()
+    ):
         return "ожидается дождь"
-    elif "снег" in "".join(day_entries.tolist()).lower() or "snow" in "".join(day_entries.tolist()).lower():
+    elif (
+        "снег" in "".join(day_entries.tolist()).lower()
+        or "snow" in "".join(day_entries.tolist()).lower()
+    ):
         return "ожидается снег"
     else:
         return "не ожидается осадков"
@@ -69,16 +81,30 @@ def calculate(df, current_date):
     t_and_hum_by_day["T"] = t_and_hum_by_day["T"].round(2)
     t_and_hum_by_day["U"] = t_and_hum_by_day["U"].round(2)
 
-    if len(df_slice[df_slice['WW'].str.contains('ливень|дождь|снег|град|гроза|морось|мгла|туман|морось|rain|shower|snow|hail|thunderstorm',
-                                                case=False,
-                                                na=False)]) == 0:
+    if (
+        len(
+            df_slice[
+                df_slice["WW"].str.contains(
+                    "ливень|дождь|снег|град|гроза|морось|мгла|туман|морось|rain|shower|snow|hail|thunderstorm",
+                    case=False,
+                    na=False,
+                )
+            ]
+        )
+        == 0
+    ):
         any_precipitation = False
     else:
         any_precipitation = True
 
-    if len(df_slice[df_slice['WW'].str.contains('ливень|shower|ливни',
-                                                case=False,
-                                                na=False)]) > 50:
+    if (
+        len(
+            df_slice[
+                df_slice["WW"].str.contains("ливень|shower|ливни", case=False, na=False)
+            ]
+        )
+        > 50
+    ):
         showers = True
     else:
         showers = False
@@ -139,7 +165,9 @@ def calculate(df, current_date):
         t_and_hum_by_day["U"].values > 50
     ):
         if showers:
-            gray_rot_prob = get_prob(t_and_hum_by_day, 27.5, 100, special_condition=True)
+            gray_rot_prob = get_prob(
+                t_and_hum_by_day, 27.5, 100, special_condition=True
+            )
         else:
             gray_rot_prob = get_prob(t_and_hum_by_day, 27.5, 100)
     else:
@@ -158,7 +186,9 @@ def calculate(df, current_date):
         t_and_hum_by_day["U"].values > 45
     ):
         if showers or any_precipitation:
-            black_rot_prob = get_prob(t_and_hum_by_day, 22.5, 100, special_condition=True)
+            black_rot_prob = get_prob(
+                t_and_hum_by_day, 22.5, 100, special_condition=True
+            )
         else:
             black_rot_prob = get_prob(t_and_hum_by_day, 22.5, 100)
     else:
@@ -218,32 +248,19 @@ def calculate(df, current_date):
         bacterial_cancer_prob = 0
 
     illnesses = [
-        {"name": "Милдью",
-            "percent": mildew_prob},
-        {"name": "Оидиум – конидии",
-            "percent": conidia_prob},
-        {"name": "Оидиум - мицелий",
-            "percent": mycelium_prob},
-        {"name": "Антракноз",
-            "percent": anthracnose_prob},
-        {"name": "Серая гниль",
-            "percent": gray_rot_prob},
-        {"name": "Чёрная пятнистость",
-            "percent": black_spot_prob},
-        {"name": "Черная гниль",
-            "percent": black_rot_prob},
-        {"name": "Белая гниль",
-            "percent": white_rot_prob},
-        {"name": "Вертициллезное увядание",
-            "percent": wilt_prob},
-        {"name": "Альтернариоз",
-            "percent": alternariosis_prob},
-        {"name": "Фузариоз",
-            "percent": fusarium_prob},
-        {"name": "Краснуха",
-            "percent": rubella_prob},
-        {"name": "Бактериальный рак",
-            "percent": bacterial_cancer_prob},
+        {"name": "Милдью", "percent": mildew_prob},
+        {"name": "Оидиум – конидии", "percent": conidia_prob},
+        {"name": "Оидиум - мицелий", "percent": mycelium_prob},
+        {"name": "Антракноз", "percent": anthracnose_prob},
+        {"name": "Серая гниль", "percent": gray_rot_prob},
+        {"name": "Чёрная пятнистость", "percent": black_spot_prob},
+        {"name": "Черная гниль", "percent": black_rot_prob},
+        {"name": "Белая гниль", "percent": white_rot_prob},
+        {"name": "Вертициллезное увядание", "percent": wilt_prob},
+        {"name": "Альтернариоз", "percent": alternariosis_prob},
+        {"name": "Фузариоз", "percent": fusarium_prob},
+        {"name": "Краснуха", "percent": rubella_prob},
+        {"name": "Бактериальный рак", "percent": bacterial_cancer_prob},
     ]
     return {
         "date": pd_cur_date.strftime("%Y-%m-%d"),
@@ -255,24 +272,30 @@ def forecast_yandex(current_date, key):
     region = Region.objects.get(id=key)
     result = requests.get(
         f"https://api.weather.yandex.ru/v2/forecast?lat={region.lat}&lon={region.lon}&extra=true&lang=ru_RU&limit=4&hours=false",
-        headers={"X-Yandex-API-Key": YANDEX_API_KEY}
+        headers={"X-Yandex-API-Key": YANDEX_API_KEY},
     )
 
     json_datas = result.json()
     json_datas = json_datas["forecasts"]
-    data_nigth = [{
-        'date': json_data['date'],
-        'U': json_data['parts']['night']['humidity'],
-        'T': json_data['parts']['night']['temp_avg'],
-        'WW': json_data['parts']['night']['condition']
-    } for json_data in json_datas]
+    data_nigth = [
+        {
+            "date": json_data["date"],
+            "U": json_data["parts"]["night"]["humidity"],
+            "T": json_data["parts"]["night"]["temp_avg"],
+            "WW": json_data["parts"]["night"]["condition"],
+        }
+        for json_data in json_datas
+    ]
 
-    data_day = [{
-        'date': json_data['date'],
-        'U': json_data['parts']['day_short']['humidity'],
-        'T': json_data['parts']['day_short']['temp'],
-        'WW': json_data['parts']['day_short']['condition']
-    } for json_data in json_datas]
+    data_day = [
+        {
+            "date": json_data["date"],
+            "U": json_data["parts"]["day_short"]["humidity"],
+            "T": json_data["parts"]["day_short"]["temp"],
+            "WW": json_data["parts"]["day_short"]["condition"],
+        }
+        for json_data in json_datas
+    ]
     # Convert dictionary to dataframe
     df = pd.DataFrame(data_nigth + data_day)
     return calculate(df, current_date)
@@ -282,10 +305,13 @@ def forecast_yandex(current_date, key):
 def forecast(current_date: date, key: int) -> Dict:
     df: pd.DataFrame = weather_data[key]
     return calculate(df, current_date)
-    
+
 
 def get_forecast(current_date, key):
-    if datetime.datetime.strptime(current_date, "%Y-%m-%d").date() == datetime.datetime.now().date():
+    if (
+        datetime.datetime.strptime(current_date, "%Y-%m-%d").date()
+        == datetime.datetime.now().date()
+    ):
         return forecast_yandex(current_date, key)
     else:
         return forecast(current_date, key)
