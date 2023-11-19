@@ -3,6 +3,7 @@ from datetime import date
 from threading import Thread
 from typing import Dict
 import requests
+from geography.models import Region
 import environ
 
 import pandas as pd
@@ -68,16 +69,16 @@ def calculate(df, current_date):
     t_and_hum_by_day["T"] = t_and_hum_by_day["T"].round(2)
     t_and_hum_by_day["U"] = t_and_hum_by_day["U"].round(2)
 
-    if len(df_slice[df_slice['WW'].str.contains('ливень|дождь|снег|град|гроза|морось|мгла|туман|морось|rain|showers|snow|hail|thunderstorm',
+    if len(df_slice[df_slice['WW'].str.contains('ливень|дождь|снег|град|гроза|морось|мгла|туман|морось|rain|shower|snow|hail|thunderstorm',
                                                 case=False,
                                                 na=False)]) == 0:
         any_precipitation = False
     else:
         any_precipitation = True
 
-    if len(df_slice[df_slice['WW'].str.contains('ливень|showers',
+    if len(df_slice[df_slice['WW'].str.contains('ливень|shower|ливни',
                                                 case=False,
-                                                na=False)]) > 70:
+                                                na=False)]) > 50:
         showers = True
     else:
         showers = False
@@ -96,16 +97,19 @@ def calculate(df, current_date):
     weather_forecast_df.index = weather_forecast_df.index.strftime("%Y-%m-%d")
 
     # 1) Милдью или ложная мучнистая роса
-    if all(t_and_hum_by_day["U"].values >= 85) and all(
-        t_and_hum_by_day["T"].values >= 11
+    if all(t_and_hum_by_day["U"].values >= 50) and all(
+        t_and_hum_by_day["T"].values >= 9
     ):
-        mildew_prob = get_prob(t_and_hum_by_day, 23, 100)
+        if any_precipitation or showers:
+            mildew_prob = get_prob(t_and_hum_by_day, 23, 100, special_condition=True)
+        else:
+            mildew_prob = get_prob(t_and_hum_by_day, 23, 100)
     else:
         mildew_prob = 0
 
     # 2) Оидиум – конидии
     if all(t_and_hum_by_day["T"].values >= 5) and all(
-        t_and_hum_by_day["U"].values >= 55
+        t_and_hum_by_day["U"].values >= 35
     ):
         conidia_prob = get_prob(t_and_hum_by_day, 20, 70)
     else:
@@ -113,7 +117,7 @@ def calculate(df, current_date):
 
     # 3) Оидиум - мицелий
     if all(t_and_hum_by_day["T"].values >= 5) and all(
-        t_and_hum_by_day["U"].values >= 55
+        t_and_hum_by_day["U"].values >= 35
     ):
         if any_precipitation is False:
             mycelium_prob = get_prob(t_and_hum_by_day, 30, 70, special_condition=True)
@@ -124,7 +128,7 @@ def calculate(df, current_date):
 
     # 4) Антракноз
     if all(t_and_hum_by_day["T"].values >= 10) and all(
-        t_and_hum_by_day["U"].values >= 60
+        t_and_hum_by_day["U"].values >= 35
     ):
         anthracnose_prob = get_prob(t_and_hum_by_day, 27, 75)
     else:
@@ -132,33 +136,39 @@ def calculate(df, current_date):
 
     # 5) Серая гниль
     if all(t_and_hum_by_day["T"].values >= 12) and all(
-        t_and_hum_by_day["U"].values > 90
+        t_and_hum_by_day["U"].values > 50
     ):
-        gray_rot_prob = get_prob(t_and_hum_by_day, 27.5, 100)
+        if showers:
+            gray_rot_prob = get_prob(t_and_hum_by_day, 27.5, 100, special_condition=True)
+        else:
+            gray_rot_prob = get_prob(t_and_hum_by_day, 27.5, 100)
     else:
         gray_rot_prob = 0
 
     # 6) Чёрная пятнистость
-    if all(t_and_hum_by_day["T"].values >= 15) and all(
-        t_and_hum_by_day["U"].values > 75
+    if all(t_and_hum_by_day["T"].values >= 8) and all(
+        t_and_hum_by_day["U"].values > 40
     ):
         black_spot_prob = get_prob(t_and_hum_by_day, 19, 87.5)
     else:
         black_spot_prob = 0
 
     # 7) Черная гниль
-    if all(t_and_hum_by_day["T"].values >= 15) and all(
-        t_and_hum_by_day["U"].values > 90
+    if all(t_and_hum_by_day["T"].values >= 9) and all(
+        t_and_hum_by_day["U"].values > 45
     ):
-        black_rot_prob = get_prob(t_and_hum_by_day, 22.5, 100)
+        if showers or any_precipitation:
+            black_rot_prob = get_prob(t_and_hum_by_day, 22.5, 100, special_condition=True)
+        else:
+            black_rot_prob = get_prob(t_and_hum_by_day, 22.5, 100)
     else:
         black_rot_prob = 0
 
     # 8) Белая гниль
-    if all(t_and_hum_by_day["T"].values >= 14) and all(
-        t_and_hum_by_day["U"].values > 80
+    if all(t_and_hum_by_day["T"].values >= 11) and all(
+        t_and_hum_by_day["U"].values > 50
     ):
-        if showers:
+        if showers or any_precipitation:
             white_rot_prob = get_prob(
                 t_and_hum_by_day, 23.5, 100, special_condition=True
             )
@@ -168,16 +178,16 @@ def calculate(df, current_date):
         white_rot_prob = 0
 
     # 9) Вертициллезное увядание (вилт)
-    if all(t_and_hum_by_day["T"].values >= 18) and all(
-        t_and_hum_by_day["U"].values > 80
+    if all(t_and_hum_by_day["T"].values >= 10) and all(
+        t_and_hum_by_day["U"].values > 40
     ):
         wilt_prob = get_prob(t_and_hum_by_day, 22.5, 100)
     else:
         wilt_prob = 0
 
     # 10) Альтернариоз
-    if all(t_and_hum_by_day["T"].values >= 11) and all(
-        t_and_hum_by_day["U"].values > 72.5
+    if all(t_and_hum_by_day["T"].values >= 10) and all(
+        t_and_hum_by_day["U"].values > 35
     ):
         alternariosis_prob = get_prob(t_and_hum_by_day, 24, 87.5)
     else:
@@ -185,23 +195,23 @@ def calculate(df, current_date):
 
     # 11) Фузариоз
     if all(t_and_hum_by_day["T"].values >= 1) and all(
-        t_and_hum_by_day["U"].values > 40
+        t_and_hum_by_day["U"].values > 30
     ):
         fusarium_prob = get_prob(t_and_hum_by_day, 16.5, 85)
     else:
         fusarium_prob = 0
 
     # 12) Краснуха
-    if all(t_and_hum_by_day["T"].values >= 11) and all(
-        t_and_hum_by_day["U"].values > 80
+    if all(t_and_hum_by_day["T"].values >= 9) and all(
+        t_and_hum_by_day["U"].values > 40
     ):
         rubella_prob = get_prob(t_and_hum_by_day, 19, 95)
     else:
         rubella_prob = 0
 
     # 13) Бактериальный рак
-    if all(t_and_hum_by_day["T"].values >= 17) and all(
-        t_and_hum_by_day["U"].values > 80
+    if all(t_and_hum_by_day["T"].values >= 13) and all(
+        t_and_hum_by_day["U"].values > 40
     ):
         bacterial_cancer_prob = get_prob(t_and_hum_by_day, 27.5, 95)
     else:
@@ -242,8 +252,9 @@ def calculate(df, current_date):
 
 
 def forecast_yandex(current_date, key):
+    region = Region.objects.get(id=key)
     result = requests.get(
-        "https://api.weather.yandex.ru/v2/forecast?lat=46.546266&lon=39.617851&extra=true&lang=ru_RU&limit=4&hours=false",
+        f"https://api.weather.yandex.ru/v2/forecast?lat={region.lat}&lon={region.lon}&extra=true&lang=ru_RU&limit=4&hours=false",
         headers={"X-Yandex-API-Key": YANDEX_API_KEY}
     )
 
