@@ -316,10 +316,10 @@ def get_forecast(current_date, key):
     else:
         return forecast(current_date, key)
 
-#создание кэшей
-# date_start = date(2021, 4, 7)
+создание кэшей
+date_start = date(2021, 4, 7)
 
-# for i in range(180): 
-#     for j in range (1, 53):
-#         forecast((date_start + datetime.timedelta(days=i)).strftime("%Y-%m-%d"), j)
-#     print(i)
+for i in range(180): 
+    for j in range (1, 53):
+        forecast((date_start + datetime.timedelta(days=i)).strftime("%Y-%m-%d"), j)
+    print(i)
